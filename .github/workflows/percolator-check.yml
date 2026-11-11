@@ -30,6 +30,14 @@ jobs:
           :modules:percolator:test
           :modules:percolator:internalClusterTest
           :modules:percolator:yamlRestTest
+      # Stores percolator queries with released 8.x and 9.x versions and reads them back after
+      # a full cluster restart onto this branch. Runs even if the module checks above failed.
+      - name: Percolator BWC test
+        if: success() || failure()
+        run: >-
+          ./gradlew --no-daemon --continue
+          ":qa:full-cluster-restart:v8.18.8#bwcTest" --tests "org.elasticsearch.upgrades.QueryBuilderBWCIT"
+          ":qa:full-cluster-restart:v9.3.8#bwcTest" --tests "org.elasticsearch.upgrades.QueryBuilderBWCIT"
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -38,4 +46,6 @@ jobs:
           path: |
             modules/percolator/build/reports/
             modules/percolator/build/test-results/
+            qa/full-cluster-restart/build/reports/
+            qa/full-cluster-restart/build/test-results/
           if-no-files-found: ignore
